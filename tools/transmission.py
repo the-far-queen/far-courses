@@ -49,24 +49,36 @@ class Term:
 
 
 def find_definitions(text: str) -> dict[str, str]:
-    """Terms defined inline, by the two shapes this corpus actually uses:
+    """Terms defined in this text, and where.
 
-      "term — definition"   (em dash, en dash, or colon, mid-line)
-      "term: definition"    (glossary / front-matter style)
+    Four shapes occur in practice, and the first version recognised only
+    two of them, which is why a real glossary scored as containing three
+    definitions out of twenty:
 
-    Returns a lowercased term -> definition map. An em-dash glossary entry
-    IS a definition for this purpose: the reader is not required to have
-    known the term beforehand.
+      "term: definition"                 plain colon
+      "**term** - definition"            markdown bold with a dash
+      "term - definition"                plain dash
+      "- **term** - definition"          bulleted, bold, dashed
+
+    The glossary uses the bold-dash form, so it registered as almost
+    undefined and every document measured at 100% load. A measurement
+    instrument that cannot read the artifact it measures is worse than no
+    instrument, because the number is confidently wrong.
     """
     out: dict[str, str] = {}
-    for line in text.splitlines():
-        s = line.strip()
-        if not s or s.startswith(("#", "|", ">", "-", "*", "`")):
+    for raw in text.splitlines():
+        s = raw.strip()
+        if not s or s.startswith(("#", "|", ">", "`")):
             continue
-        m = re.match(r"^([A-Za-z][A-Za-z0-9 _\-/()]{2,48}?)\s*(?:—|–|::|:)\s+(\S.{3,})$", s)
+        # strip a leading bullet
+        s = re.sub(r"^[-*+]\s+", "", s)
+        m = re.match(
+            r"^\*{0,2}([A-Za-z][A-Za-z0-9 _\-/'()]{1,48}?)\*{0,2}\s*"
+            r"(?:—|–|::|:|-)\s+(\S.{3,})$", s)
         if m:
             term = m.group(1).strip().lower()
-            out.setdefault(term, m.group(2).strip()[:200])
+            if len(term) >= 3:
+                out.setdefault(term, m.group(2).strip()[:200])
     return out
 
 
