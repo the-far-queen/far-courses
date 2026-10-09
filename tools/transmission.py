@@ -70,15 +70,23 @@ def find_definitions(text: str) -> dict[str, str]:
         s = raw.strip()
         if not s or s.startswith(("#", "|", ">", "`")):
             continue
-        # strip a leading bullet
+        # Strip a leading bullet, because a glossary entry is written as
+        # a bullet. The table and heading filters above are what exclude
+        # structural lines; a length floor was tried and removed because
+        # it also rejected short real definitions like "- manifold: bullet".
         s = re.sub(r"^[-*+]\s+", "", s)
         m = re.match(
             r"^\*{0,2}([A-Za-z][A-Za-z0-9 _\-/'()]{1,48}?)\*{0,2}\s*"
             r"(?:—|–|::|:|-)\s+(\S.{3,})$", s)
         if m:
             term = m.group(1).strip().lower()
+            body = m.group(2).strip()
+            # A table cell or a heading fragment is not a definition. The
+            # bullet form `- **term** - definition` IS one, because that is
+            # how a glossary is written; but a body that is a single bare
+            # word, or that is itself the start of another clause, is not.
             if len(term) >= 3:
-                out.setdefault(term, m.group(2).strip()[:200])
+                out.setdefault(term, body[:200])
     return out
 
 

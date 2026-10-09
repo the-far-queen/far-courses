@@ -42,9 +42,17 @@ def test_find_definitions_em_dash_and_colon():
 
 
 def test_find_definitions_ignores_structural_lines():
-    text = "| manifold | thing |\n# heading\n- manifold: bullet\n"
-    d = find_definitions(text)
+    """Table cells and headings are structure, not definitions.
+
+    A bullet IS a definition site -- that is how a glossary is written --
+    so this test changed when the bullet form was added: the old version
+    asserted that `- manifold: bullet` was NOT a definition, which
+    contradicted the corpus's own glossary style.
+    """
+    d = find_definitions("| manifold | thing |\n# heading")
     assert "manifold" not in d
+    # and a bullet with a real clause IS a definition
+    assert "manifold" in find_definitions("- **manifold** - a space locally like Euclidean space")
 
 
 def test_find_definitions_of_empty_text():
@@ -175,9 +183,14 @@ def test_corpus_report_of_empty_set():
 # --------------------------------------------------------------------- real corpus
 
 
-def test_far_math_tier2_docs_are_not_self_contained():
-    """The measurement that motivated this instrument, run against the
-    real thing rather than a fixture.
+def test_far_math_tier2_docs_are_self_contained():
+    """This asserted load > 50% and was written when the measurement said
+    100%. After the glossary and inline glosses it measures 0-17%, so the
+    assertion is now the CORRECT direction: a regression in documentation
+    quality fails here.
+
+    Kept as a test against the real artifact rather than a fixture,
+    because the artifact is what actually gets read.
     """
     doc = (Path(__file__).resolve().parents[2] / "far-math" / "docs"
            / "02-geometry-reconciled.md")
@@ -188,6 +201,5 @@ def test_far_math_tier2_docs_are_not_self_contained():
           ("manifold", "harmonic", "clifford torus", "heegaard splitting",
            "hopf fibration", "seifert genus", "solid torus")]
     r = measure(text, gl)
-    assert len(r.terms_used) >= 5
-    # it uses real domain vocabulary and does not gloss it inline
-    assert r.load > 0.5
+    assert len(r.terms_used) >= 5      # it really does use domain vocabulary
+    assert r.load <= 0.5, f"prerequisite load regressed to {r.load:.0%}: {r.undefined}"
