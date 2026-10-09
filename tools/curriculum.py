@@ -40,7 +40,10 @@ class Domain:
     name: str
     tier: int
     role: str
-    transmits: bool          # (1) under 50% prerequisite load is achievable
+    transmits: bool          # (1) MEASURED under 50% prerequisite load
+    #   A flag set from belief is the same error as a flag set from
+    #   absence of evidence. Domains whose documents have not been written
+    #   yet are False here regardless of how likely they are to pass.
     checkable: bool          # (2) a red-able test exists
     decision_changing: bool  # (3) it changes what someone does
     ungated: bool = False    # kept even if it fails the gate
@@ -133,15 +136,23 @@ TIER1: tuple[Domain, ...] = (
     Domain("business", TIER_1_INSTRUMENTS, "whether any of it reaches anyone",
            True, True, True),
     Domain("art", TIER_1_INSTRUMENTS, "a container for the other domains",
-           True, False, True,
-           note="0.48 MB on disk. DEFERRED until it has a payload: a container "
-                "with nothing to carry is decoration"),
+           False, True, True,
+           note="CHECKABLE: far-art ships 14 schema/iam files. NOT YET "
+                "TRANSMISSIBLE: no document has been measured at under 50% "
+                "prerequisite load, and the corpus holds 0.48 MB. The flag is "
+                "False because it has not been measured, not because it is "
+                "believed to fail."),
     Domain("music", TIER_1_INSTRUMENTS, "a container; interval as a measurement instrument",
-           True, False, True,
-           note="0.03 MB on disk -- two files. Same deferral as art"),
+           False, True, True,
+           note="CHECKABLE: far-music ships tools/gate.py + tests/test_track.py -- "
+                "a red-able check already exists. I first marked this "
+                "checkable=False without looking, which was wrong and is "
+                "recorded in the commit. NOT YET TRANSMISSIBLE: nothing "
+                "measured, 0.03 MB on disk."),
     Domain("film", TIER_1_INSTRUMENTS, "a container: writing + art + music + engineering in one",
-           True, False, True,
-           note="far-film exists; the corpus folder is 0.94 MB"),
+           False, True, True,
+           note="CHECKABLE: far-film ships tools/gate.py + tests/test_shot.py. "
+                "NOT YET TRANSMISSIBLE: nothing measured; 0.94 MB corpus."),
     Domain("apps", TIER_1_INSTRUMENTS, "a container: engineering + design + law + business",
            True, True, True),
     Domain("games", TIER_1_INSTRUMENTS,

@@ -155,18 +155,25 @@ def test_the_additions_are_never_silently_demoted_to_library():
         assert d.note, f"{name} has no rationale recorded"
 
 
-def test_containers_are_deferred_with_a_stated_reason():
-    """art, music, film: a container with nothing to carry is decoration.
+def test_containers_are_deferred_on_transmission_not_rigor():
+    """art, music, film are deferred because nothing has been MEASURED,
+    not because art is unrigorous.
 
-    Each must carry a note saying why, and each must fail on
-    CHECKABILITY specifically -- that is the honest reason a painting or a
-    symphony is not yet a school, not "art is not rigorous".
+    The first version of the gate marked them checkable=False. That was
+    wrong: far-music and far-film ship tools/gate.py plus tests, and
+    far-art ships 14 schema files. A red-able check exists. The honest
+    reason is transmission -- no document has been measured under 50%
+    prerequisite load, and the corpus holds 0.03-0.94 MB.
+
+    A flag set from absence of evidence is the same error as one set from
+    belief. This test pins the corrected reason so it cannot drift back.
     """
     for name in ("art", "music", "film"):
         d = next(x for x in ALL if x.name == name)
         assert d.verdict == FAIL, name
-        assert d.checkable is False, f"{name} should fail on checkability"
-        assert any("check" in r for r in d.why_not()), name
+        assert d.checkable is True, f"{name} DOES have a checkable gate"
+        assert d.transmits is False, f"{name} must fail on unmeasured transmission"
+        assert any("transmiss" in r for r in d.why_not()), name
         assert d.note, f"{name} is deferred with no stated reason"
 
 
